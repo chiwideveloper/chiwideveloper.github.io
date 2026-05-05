@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inmobiliaria Colón — Propiedades de Prestigio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #f7f4ef;
+      --warm:    #ede8e0;
+      --stone:   #c8bfb0;
+      --clay:    #9e8e7e;
+      --bark:    #5c4f42;
+      --espresso:#2b231b;
+      --ink:     #1a1410;
+      --sage:    #7a8c74;
+      --sage-l:  #a8b8a2;
+      --gold:    #b8985a;
+      --gold-l:  #d4b57a;
+      --white:   #ffffff;
+      --border:  rgba(92,79,66,0.12);
+      --border-m:rgba(92,79,66,0.22);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── CURSOR ── */
+    .cursor-dot {
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s;
+    }
+    .cursor-ring {
+      width: 32px; height: 32px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, width 0.3s, height 0.3s;
+      opacity: 0.5;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 64px;
+      transition: all 0.5s;
+    }
+    nav.scrolled {
+      background: rgba(247,244,239,0.96);
+      padding: 18px 64px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-decoration: none;
+    }
+    .nav-logo-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: var(--ink);
+      text-transform: uppercase;
+    }
+    .nav-logo-sub {
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--clay);
+      margin-top: 1px;
+    }
+
+    .nav-links { display: flex; gap: 44px; list-style: none; }
+    .nav-links a {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--bark);
+      text-decoration: none;
+      font-weight: 400;
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1px;
+      background: var(--gold);
+      transition: width 0.3s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-cta {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--bark);
+      padding: 10px 24px;
+      font-weight: 400;
+      transition: all 0.3s;
+    }
+    .nav-cta:hover {
+      background: var(--ink);
+      color: var(--cream);
+      border-color: var(--ink);
+    }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-left {
+      background: var(--espresso);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 64px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-left-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(184,152,90,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(184,152,90,0.06) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-left-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(27,20,16,0.95) 0%, rgba(27,20,16,0.3) 60%, transparent 100%);
+    }
+
+    .hero-left-content { position: relative; z-index: 2; }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 36px;
+      font-weight: 400;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 40px; height: 1px;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 5.5vw, 80px);
+      font-weight: 300;
+      line-height: 1.05;
+      color: var(--cream);
+      margin-bottom: 28px;
+    }
+    h1 em { font-style: italic; color: var(--gold-l); }
+
+    .hero-desc {
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(247,244,239,0.55);
+      max-width: 380px;
+      margin-bottom: 52px;
+    }
+
+    .hero-actions { display: flex; gap: 16px; align-items: center; }
+
+    .btn-dark {
+      background: var(--gold);
+      color: var(--ink);
+      padding: 15px 36px;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: inline-block;
+    }
+    .btn-dark:hover { background: var(--gold-l); transform: translateY(-2px); }
+
+    .btn-outline-light {
+      color: rgba(247,244,239,0.6);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .btn-outline-light:hover { color: var(--cream); }
+    .btn-outline-light span { font-size: 18px; line-height: 1; }
+
+    .hero-right {
+      background: var(--warm);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Geometric composition */
+    .geo-composition {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .geo-rect-big {
+      position: absolute;
+      width: 55%;
+      height: 68%;
+      top: 10%;
+      left: 8%;
+      background: var(--stone);
+      opacity: 0.35;
+    }
+    .geo-rect-tall {
+      position: absolute;
+      width: 28%;
+      height: 80%;
+      top: 6%;
+      right: 10%;
+      background: var(--clay);
+      opacity: 0.18;
+    }
+    .geo-rect-accent {
+      position: absolute;
+      width: 40%;
+      height: 32%;
+      bottom: 8%;
+      left: 20%;
+      background: var(--gold);
+      opacity: 0.12;
+    }
+    .geo-line-h {
+      position: absolute;
+      width: 50%;
+      height: 1px;
+      background: var(--bark);
+      opacity: 0.15;
+      top: 50%;
+      left: 10%;
+    }
+    .geo-line-v {
+      position: absolute;
+      width: 1px;
+      height: 50%;
+      background: var(--bark);
+      opacity: 0.15;
+      left: 42%;
+      top: 20%;
+    }
+
+    .hero-card-float {
+      position: relative;
+      z-index: 2;
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 36px;
+      width: 340px;
+      box-shadow: 0 24px 64px rgba(43,35,27,0.1);
+    }
+    .hero-card-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--clay);
+      margin-bottom: 16px;
+    }
+    .hero-card-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .hero-card-price sup { font-size: 22px; }
+    .hero-card-addr {
+      font-size: 12px;
+      color: var(--clay);
+      letter-spacing: 0.5px;
+      margin-bottom: 24px;
+    }
+    .hero-card-details {
+      display: flex;
+      gap: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .hero-card-detail { display: flex; flex-direction: column; gap: 4px; }
+    .hero-card-detail-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--ink);
+    }
+    .hero-card-detail-label { font-size: 10px; letter-spacing: 1.5px; color: var(--clay); text-transform: uppercase; }
+    .hero-card-badge {
+      position: absolute;
+      top: -12px; right: 24px;
+      background: var(--sage);
+      color: var(--white);
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      font-weight: 500;
+    }
+
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--clay);
+      z-index: 2;
+    }
+    .hero-scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--clay), transparent);
+      animation: scroll-pulse 2s ease-in-out infinite;
+    }
+    @keyframes scroll-pulse { 0%,100%{opacity:0.4; transform:scaleY(1)} 50%{opacity:1; transform:scaleY(1.2)} }
+
+    /* ── SEARCH BAR ── */
+    #busqueda {
+      background: var(--white);
+      padding: 0 64px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 0;
+    }
+    .search-field {
+      padding: 28px 32px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .search-field:hover { background: var(--cream); }
+    .search-field:last-of-type { border-right: none; }
+    .search-field-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--clay); }
+    .search-field-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .search-btn {
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      padding: 0 48px;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .search-btn:hover { background: var(--espresso); }
+
+    /* ── SECTION COMMON ── */
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 4vw, 60px);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+    .section-title em { font-style: italic; }
+    .section-sub {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--clay);
+      max-width: 420px;
+    }
+
+    /* ── FEATURED PROPERTIES ── */
+    #propiedades { padding: 120px 64px; }
+
+    .props-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 72px;
+    }
+    .props-header-left { max-width: 500px; }
+    .props-header-left .section-title { margin-bottom: 16px; }
+
+    .view-all {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--bark);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-m);
+      padding-bottom: 4px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .view-all:hover { color: var(--gold); border-color: var(--gold); }
+
+    .props-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 24px;
+    }
+
+    .prop-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      group: true;
+    }
+    .prop-card-img {
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    .prop-card.featured .prop-card-img { height: 480px; }
+    .prop-card.standard .prop-card-img { height: 260px; }
+
+    .prop-img-inner {
+      width: 100%;
+      height: 100%;
+      background: var(--stone);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.6s ease;
+    }
+    .prop-card:hover .prop-img-inner { transform: scale(1.04); }
+
+    .prop-placeholder {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 88px;
+      color: rgba(92,79,66,0.12);
+      user-select: none;
+    }
+    .prop-card.standard .prop-placeholder { font-size: 56px; }
+
+    /* Color variants for fake photos */
+    .prop-img-inner.v1 { background: #d8d0c4; }
+    .prop-img-inner.v2 { background: #c9c2b8; }
+    .prop-img-inner.v3 { background: #e0dbd3; }
+    .prop-img-inner.v4 { background: #cfc8be; }
+
+    .prop-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(27,20,16,0.75) 0%, transparent 55%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .prop-card:hover .prop-overlay { opacity: 1; }
+
+    .prop-tag {
+      position: absolute;
+      top: 20px; left: 20px;
+      background: var(--white);
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .prop-tag.venta { background: var(--sage); color: var(--white); }
+    .prop-tag.alquiler { background: var(--gold); color: var(--ink); }
+    .prop-tag.exclusiva { background: var(--ink); color: var(--cream); }
+
+    .prop-info {
+      background: var(--white);
+      padding: 28px 28px 24px;
+      border: 1px solid var(--border);
+      border-top: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .prop-info-left { flex: 1; }
+    .prop-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .prop-card.featured .prop-name { font-size: 28px; }
+    .prop-location {
+      font-size: 11px;
+      color: var(--clay);
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .prop-specs {
+      display: flex;
+      gap: 18px;
+    }
+    .prop-spec { font-size: 12px; color: var(--bark); display: flex; align-items: center; gap: 5px; }
+    .prop-spec-icon { font-size: 13px; }
+    .prop-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--ink);
+      white-space: nowrap;
+      text-align: right;
+    }
+    .prop-card.featured .prop-price { font-size: 32px; }
+    .prop-price-period { font-size: 11px; color: var(--clay); display: block; text-align: right; margin-top: 2px; }
+
+    /* Side column */
+    .props-side { display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── NUMBERS STRIP ── */
+    #numeros {
+      background: var(--espresso);
+      padding: 80px 64px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .numero-item {
+      padding: 0 48px;
+      border-right: 1px solid rgba(247,244,239,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .numero-item:first-child { padding-left: 0; }
+    .numero-item:last-child { border-right: none; }
+    .numero-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 60px;
+      font-weight: 300;
+      color: var(--cream);
+      line-height: 1;
+    }
+    .numero-val span { color: var(--gold); }
+    .numero-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(247,244,239,0.4); }
+    .numero-desc { font-size: 13px; color: rgba(247,244,239,0.3); margin-top: 4px; }
+
+    /* ── SERVICES ── */
+    #servicios { padding: 120px 64px; background: var(--warm); }
+
+    .services-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 100px;
+      align-items: center;
+    }
+
+    .services-visual {
+      position: relative;
+      height: 520px;
+    }
+    .sv-box {
+      position: absolute;
+      background: var(--white);
+      border: 1px solid var(--border);
+    }
+    .sv-box-1 { width: 65%; height: 70%; top: 0; left: 0; display: flex; align-items: center; justify-content: center; }
+    .sv-box-2 { width: 50%; height: 52%; bottom: 0; right: 0; background: var(--espresso); border-color: transparent; display: flex; flex-direction: column; justify-content: flex-end; padding: 32px; }
+    .sv-box-3 { width: 28%; height: 28%; bottom: 8%; left: 8%; background: var(--gold); border: none; }
+
+    .sv-large-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 108px;
+      font-weight: 300;
+      color: rgba(92,79,66,0.08);
+      line-height: 1;
+    }
+    .sv-stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px;
+      color: var(--cream);
+      line-height: 1;
+    }
+    .sv-stat-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(247,244,239,0.4); margin-top: 6px; }
+
+    .services-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+    .service-item {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      cursor: default;
+      transition: padding-left 0.3s;
+    }
+    .service-item:first-child { border-top: 1px solid var(--border); }
+    .service-item:hover { padding-left: 8px; }
+    .service-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--gold);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .service-content h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+    .service-content p { font-size: 13px; color: var(--clay); line-height: 1.7; }
+
+    /* ── ZONES MAP ── */
+    #zonas { padding: 120px 64px; }
+
+    .zones-header { margin-bottom: 72px; }
+    .zones-header .section-title { margin-bottom: 16px; }
+
+    .zones-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .zone-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 40px 36px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s;
+      overflow: hidden;
+    }
+    .zone-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--gold);
+      transform: scaleY(0);
+      transition: transform 0.35s;
+    }
+    .zone-card:hover { background: var(--cream); }
+    .zone-card:hover::before { transform: scaleY(1); }
+
+    .zone-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 56px;
+      color: rgba(92,79,66,0.08);
+      line-height: 1;
+      position: absolute;
+      top: 20px; right: 24px;
+    }
+    .zone-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .zone-city { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+    .zone-stats { display: flex; gap: 24px; }
+    .zone-stat { display: flex; flex-direction: column; gap: 4px; }
+    .zone-stat-num { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--bark); }
+    .zone-stat-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--clay); }
+
+    /* ── TESTIMONIALS ── */
+    #testimonios { background: var(--warm); padding: 120px 64px; }
+
+    .test-header { margin-bottom: 72px; }
+
+    .test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+    .test-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      padding: 40px 36px;
+    }
+    .test-quote {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      color: var(--gold);
+      line-height: 0.8;
+      margin-bottom: 20px;
+    }
+    .test-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.6;
+      color: var(--bark);
+      margin-bottom: 32px;
+    }
+    .test-author { display: flex; align-items: center; gap: 16px; }
+    .test-avatar {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--stone);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--bark);
+    }
+    .test-author-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .test-author-detail { font-size: 11px; color: var(--clay); letter-spacing: 0.5px; }
+    .test-stars { margin-bottom: 16px; color: var(--gold); font-size: 13px; letter-spacing: 3px; }
+
+    /* ── CTA ── */
+    #cta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .cta-left {
+      background: var(--ink);
+      padding: 120px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-left-pattern {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 80% 20%, rgba(184,152,90,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, rgba(184,152,90,0.05) 0%, transparent 50%);
+    }
+    .cta-content { position: relative; z-index: 2; }
+    .cta-content .section-label { color: var(--gold); }
+    .cta-content .section-title { color: var(--cream); margin-bottom: 24px; }
+    .cta-content .section-sub { color: rgba(247,244,239,0.45); margin-bottom: 48px; }
+
+    .cta-right {
+      background: var(--gold);
+      padding: 120px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .cta-right-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      font-weight: 300;
+      color: var(--ink);
+      margin-bottom: 36px;
+    }
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-input {
+      background: rgba(27,20,16,0.08);
+      border: 1px solid rgba(27,20,16,0.2);
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--ink);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-input::placeholder { color: rgba(27,20,16,0.45); }
+    .form-input:focus { border-color: rgba(27,20,16,0.5); }
+    .form-submit {
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      padding: 16px 36px;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-family: 'Jost', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .form-submit:hover { background: var(--espresso); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--espresso);
+      padding: 80px 64px 40px;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 64px;
+      padding-bottom: 64px;
+      border-bottom: 1px solid rgba(247,244,239,0.08);
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      color: var(--cream);
+      margin-bottom: 16px;
+    }
+    .footer-desc { font-size: 13px; color: rgba(247,244,239,0.35); line-height: 1.7; max-width: 280px; }
+
+    .footer-col-title { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-links a { font-size: 13px; color: rgba(247,244,239,0.4); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--cream); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 40px;
+    }
+    .footer-copy { font-size: 11px; color: rgba(247,244,239,0.2); letter-spacing: 0.5px; }
+    .footer-socials { display: flex; gap: 16px; }
+    .footer-socials a {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(247,244,239,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: rgba(247,244,239,0.35);
+      text-decoration: none; transition: all 0.2s; letter-spacing: 0;
+    }
+    .footer-socials a:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ── ANIMATIONS ── */
+    .fade-up { opacity: 0; transform: translateY(36px); transition: opacity 0.9s ease, transform 0.9s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .fade-up-delay-1 { transition-delay: 0.1s; }
+    .fade-up-delay-2 { transition-delay: 0.2s; }
+    .fade-up-delay-3 { transition-delay: 0.3s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      nav { padding: 20px 24px; }
+      .nav-links { display: none; }
+      #hero { grid-template-columns: 1fr; }
+      .hero-right { min-height: 400px; }
+      #busqueda { padding: 0 24px; }
+      .search-bar { grid-template-columns: 1fr; }
+      .search-field { padding: 20px 24px; }
+      #propiedades, #servicios, #zonas, #testimonios { padding: 80px 24px; }
+      .props-grid { grid-template-columns: 1fr; }
+      .props-side { display: contents; }
+      .props-header { flex-direction: column; align-items: flex-start; gap: 24px; }
+      #numeros { grid-template-columns: 1fr 1fr; padding: 60px 24px; gap: 40px; }
+      .numero-item { border-right: none; padding: 0; }
+      .services-layout { grid-template-columns: 1fr; }
+      .services-visual { height: 280px; }
+      .zones-grid { grid-template-columns: 1fr; }
+      .test-grid { grid-template-columns: 1fr; }
+      #cta { grid-template-columns: 1fr; }
+      .cta-left, .cta-right { padding: 80px 24px; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 40px; }
+      .footer-bottom { flex-direction: column; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor-dot" id="cDot"></div>
+<div class="cursor-ring" id="cRing"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#hero">
+    <span class="nav-logo-main">Inmobiliaria Colón</span>
+    <span class="nav-logo-sub">Propiedades de prestigio · Valencia</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#propiedades">Propiedades</a></li>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#zonas">Zonas</a></li>
+    <li><a href="#testimonios">Clientes</a></li>
+  </ul>
+  <a class="nav-cta" href="#cta">Contactar</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-left-pattern"></div>
+    <div class="hero-left-overlay"></div>
+    <div class="hero-left-content">
+      <div class="hero-tag">Desde 1998 · Valencia</div>
+      <h1>Tu hogar<br><em>ideal</em><br>te espera</h1>
+      <p class="hero-desc">Más de 25 años ayudando a familias y particulares a encontrar la propiedad que merecen. Asesoramiento experto, trato personal.</p>
+      <div class="hero-actions">
+        <a class="btn-dark" href="#propiedades">Ver propiedades</a>
+        <a class="btn-outline-light" href="#cta"><span>→</span> Hablar con un agente</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="geo-composition">
+      <div class="geo-rect-big"></div>
+      <div class="geo-rect-tall"></div>
+      <div class="geo-rect-accent"></div>
+      <div class="geo-line-h"></div>
+      <div class="geo-line-v"></div>
+    </div>
+    <div class="hero-card-float">
+      <div class="hero-card-badge">Exclusiva</div>
+      <div class="hero-card-label">Propiedad destacada</div>
+      <div class="hero-card-price"><sup>€</sup>485.000</div>
+      <div class="hero-card-addr">Avda. de Colón 42 · Eixample, Valencia</div>
+      <div class="hero-card-details">
+        <div class="hero-card-detail">
+          <div class="hero-card-detail-num">4</div>
+          <div class="hero-card-detail-label">Habitaciones</div>
+        </div>
+        <div class="hero-card-detail">
+          <div class="hero-card-detail-num">2</div>
+          <div class="hero-card-detail-label">Baños</div>
+        </div>
+        <div class="hero-card-detail">
+          <div class="hero-card-detail-num">162</div>
+          <div class="hero-card-detail-label">m²</div>
+        </div>
+        <div class="hero-card-detail">
+          <div class="hero-card-detail-num">8ª</div>
+          <div class="hero-card-detail-label">Planta</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll-hint">
+      <div class="hero-scroll-line"></div>
+      <span>Explorar</span>
+    </div>
+  </div>
+</section>
+
+<!-- SEARCH BAR -->
+<section id="busqueda">
+  <div class="search-bar">
+    <div class="search-field">
+      <div class="search-field-label">Operación</div>
+      <div class="search-field-val">Compra o alquiler</div>
+    </div>
+    <div class="search-field">
+      <div class="search-field-label">Zona</div>
+      <div class="search-field-val">Cualquier zona</div>
+    </div>
+    <div class="search-field">
+      <div class="search-field-label">Tipo de inmueble</div>
+      <div class="search-field-val">Piso, chalet, local…</div>
+    </div>
+    <button class="search-btn">Buscar propiedades →</button>
+  </div>
+</section>
+
+<!-- PROPIEDADES DESTACADAS -->
+<section id="propiedades">
+  <div class="props-header fade-up">
+    <div class="props-header-left">
+      <div class="section-label">Selección exclusiva</div>
+      <h2 class="section-title">Propiedades<br><em>destacadas</em></h2>
+    </div>
+    <a class="view-all" href="#">Ver todo el catálogo →</a>
+  </div>
+
+  <div class="props-grid">
+    <!-- Featured -->
+    <div class="prop-card featured fade-up">
+      <div class="prop-card-img">
+        <div class="prop-img-inner v1">
+          <div class="prop-placeholder">⌂</div>
+        </div>
+        <div class="prop-overlay"></div>
+        <div class="prop-tag exclusiva">Exclusiva</div>
+      </div>
+      <div class="prop-info">
+        <div class="prop-info-left">
+          <div class="prop-name">Ático con terraza panorámica</div>
+          <div class="prop-location">📍 Eixample Norte · Valencia</div>
+          <div class="prop-specs">
+            <div class="prop-spec"><span class="prop-spec-icon">🛏</span> 4 hab.</div>
+            <div class="prop-spec"><span class="prop-spec-icon">🚿</span> 2 baños</div>
+            <div class="prop-spec"><span class="prop-spec-icon">📐</span> 162 m²</div>
+          </div>
+        </div>
+        <div>
+          <div class="prop-price">€ 485.000</div>
+          <span class="prop-price-period">Venta</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side -->
+    <div class="props-side">
+      <div class="prop-card standard fade-up fade-up-delay-1">
+        <div class="prop-card-img">
+          <div class="prop-img-inner v2">
+            <div class="prop-placeholder">⌂</div>
+          </div>
+          <div class="prop-overlay"></div>
+          <div class="prop-tag venta">Venta</div>
+        </div>
+        <div class="prop-info">
+          <div class="prop-info-left">
+            <div class="prop-name">Piso luminoso reformado</div>
+            <div class="prop-location">📍 Ruzafa · Valencia</div>
+            <div class="prop-specs">
+              <div class="prop-spec"><span class="prop-spec-icon">🛏</span> 3 hab.</div>
+              <div class="prop-spec"><span class="prop-spec-icon">📐</span> 98 m²</div>
+            </div>
+          </div>
+          <div>
+            <div class="prop-price">€ 298.000</div>
+            <span class="prop-price-period">Venta</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prop-card standard fade-up fade-up-delay-2">
+        <div class="prop-card-img">
+          <div class="prop-img-inner v3">
+            <div class="prop-placeholder">⌂</div>
+          </div>
+          <div class="prop-overlay"></div>
+          <div class="prop-tag alquiler">Alquiler</div>
+        </div>
+        <div class="prop-info">
+          <div class="prop-info-left">
+            <div class="prop-name">Apartamento céntrico con parking</div>
+            <div class="prop-location">📍 El Carmen · Valencia</div>
+            <div class="prop-specs">
+              <div class="prop-spec"><span class="prop-spec-icon">🛏</span> 2 hab.</div>
+              <div class="prop-spec"><span class="prop-spec-icon">📐</span> 72 m²</div>
+            </div>
+          </div>
+          <div>
+            <div class="prop-price">€ 1.100</div>
+            <span class="prop-price-period">/ mes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<div id="numeros">
+  <div class="numero-item fade-up">
+    <div class="numero-val">+<span>1.200</span></div>
+    <div class="numero-label">Propiedades vendidas</div>
+    <div class="numero-desc">En toda la Comunitat Valenciana</div>
+  </div>
+  <div class="numero-item fade-up fade-up-delay-1">
+    <div class="numero-val"><span>25</span></div>
+    <div class="numero-label">Años de experiencia</div>
+    <div class="numero-desc">Desde 1998 en el mercado</div>
+  </div>
+  <div class="numero-item fade-up fade-up-delay-2">
+    <div class="numero-val"><span>98</span>%</div>
+    <div class="numero-label">Clientes satisfechos</div>
+    <div class="numero-desc">Según encuestas post-venta</div>
+  </div>
+  <div class="numero-item fade-up fade-up-delay-3">
+    <div class="numero-val"><span>42</span></div>
+    <div class="numero-label">Días de media</div>
+    <div class="numero-desc">Para cerrar una operación</div>
+  </div>
+</div>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="services-layout">
+    <div class="services-visual fade-up">
+      <div class="sv-box sv-box-1">
+        <div class="sv-large-text">C</div>
+      </div>
+      <div class="sv-box sv-box-2">
+        <div class="sv-stat-num">+25</div>
+        <div class="sv-stat-label">Años de confianza</div>
+      </div>
+      <div class="sv-box sv-box-3"></div>
+    </div>
+
+    <div class="fade-up fade-up-delay-1">
+      <div class="section-label">Qué hacemos</div>
+      <h2 class="section-title" style="margin-bottom: 48px;">Nuestros<br><em>servicios</em></h2>
+
+      <ul class="services-list">
+        <li class="service-item">
+          <div class="service-num">01</div>
+          <div class="service-content">
+            <h3>Compra y venta de inmuebles</h3>
+            <p>Gestionamos todo el proceso, desde la valoración hasta la firma en notaría, con total transparencia y seguridad jurídica.</p>
+          </div>
+        </li>
+        <li class="service-item">
+          <div class="service-num">02</div>
+          <div class="service-content">
+            <h3>Alquiler residencial y comercial</h3>
+            <p>Encontramos al inquilino ideal para tu propiedad, con contrato, aval y seguimiento durante toda la relación.</p>
+          </div>
+        </li>
+        <li class="service-item">
+          <div class="service-num">03</div>
+          <div class="service-content">
+            <h3>Valoración gratuita</h3>
+            <p>Tasación profesional y sin compromiso basada en datos reales del mercado actual de tu zona.</p>
+          </div>
+        </li>
+        <li class="service-item">
+          <div class="service-num">04</div>
+          <div class="service-content">
+            <h3>Asesoría financiera e hipotecaria</h3>
+            <p>Te acompañamos en la búsqueda de la mejor financiación, negociando directamente con entidades bancarias.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ZONAS -->
+<section id="zonas">
+  <div class="zones-header fade-up">
+    <div class="section-label">Dónde actuamos</div>
+    <h2 class="section-title" style="margin-bottom: 16px;">Zonas<br><em>de especialización</em></h2>
+    <p class="section-sub">Profundo conocimiento de cada barrio y zona, con datos de mercado actualizados y agentes locales especializados.</p>
+  </div>
+
+  <div class="zones-grid">
+    <div class="zone-card fade-up">
+      <div class="zone-num">01</div>
+      <div class="zone-name">Eixample</div>
+      <div class="zone-city">Valencia Centro</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">84</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€3.200</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+    <div class="zone-card fade-up fade-up-delay-1">
+      <div class="zone-num">02</div>
+      <div class="zone-name">Ruzafa</div>
+      <div class="zone-city">Valencia Sur</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">61</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€2.900</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+    <div class="zone-card fade-up fade-up-delay-2">
+      <div class="zone-num">03</div>
+      <div class="zone-name">El Carmen</div>
+      <div class="zone-city">Casco Histórico</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">47</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€2.700</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+    <div class="zone-card fade-up">
+      <div class="zone-num">04</div>
+      <div class="zone-name">Patacona · Alboraya</div>
+      <div class="zone-city">Litoral Norte</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">38</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€3.500</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+    <div class="zone-card fade-up fade-up-delay-1">
+      <div class="zone-num">05</div>
+      <div class="zone-name">Campanar · Nou Moles</div>
+      <div class="zone-city">Valencia Oeste</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">52</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€2.400</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+    <div class="zone-card fade-up fade-up-delay-2">
+      <div class="zone-num">06</div>
+      <div class="zone-name">Mislata · Paterna</div>
+      <div class="zone-city">Área Metropolitana</div>
+      <div class="zone-stats">
+        <div class="zone-stat"><div class="zone-stat-num">29</div><div class="zone-stat-label">Propiedades</div></div>
+        <div class="zone-stat"><div class="zone-stat-num">€1.800</div><div class="zone-stat-label">Precio/m²</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonios">
+  <div class="test-header fade-up">
+    <div class="section-label">Lo que dicen nuestros clientes</div>
+    <h2 class="section-title">Historias de<br><em>confianza</em></h2>
+  </div>
+
+  <div class="test-grid">
+    <div class="test-card fade-up">
+      <div class="test-stars">★★★★★</div>
+      <div class="test-quote">"</div>
+      <p class="test-text">Vendimos nuestro piso en menos de tres semanas y al precio que esperábamos. El equipo de Colón nos guió en cada paso con una profesionalidad impecable.</p>
+      <div class="test-author">
+        <div class="test-avatar">MR</div>
+        <div>
+          <div class="test-author-name">María Reig</div>
+          <div class="test-author-detail">Vendió en Eixample · 2024</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card fade-up fade-up-delay-1">
+      <div class="test-stars">★★★★★</div>
+      <div class="test-quote">"</div>
+      <p class="test-text">Compramos nuestro primer piso con ellos y la experiencia fue excepcional. Nos explicaron todo, gestionaron la hipoteca y estuvieron disponibles siempre.</p>
+      <div class="test-author">
+        <div class="test-avatar">JA</div>
+        <div>
+          <div class="test-author-name">Jordi & Ana Pla</div>
+          <div class="test-author-detail">Compraron en Ruzafa · 2024</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-card fade-up fade-up-delay-2">
+      <div class="test-stars">★★★★★</div>
+      <div class="test-quote">"</div>
+      <p class="test-text">Llevo tres propiedades en alquiler gestionadas por Inmobiliaria Colón. Cero preocupaciones, pagos puntuales y un trato cercano que no encuentras en las grandes agencias.</p>
+      <div class="test-author">
+        <div class="test-avatar">CF</div>
+        <div>
+          <div class="test-author-name">Carlos Ferri</div>
+          <div class="test-author-detail">Propietario · 3 inmuebles en gestión</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-left">
+    <div class="cta-left-pattern"></div>
+    <div class="cta-content">
+      <div class="section-label">¿Vendemos tu propiedad?</div>
+      <h2 class="section-title">Valoración<br><em>gratuita</em><br>en 24 horas</h2>
+      <p class="section-sub">Sin compromiso. Te decimos cuánto vale tu propiedad hoy en el mercado, con datos reales y análisis personalizado.</p>
+      <a class="btn-dark" href="#">Solicitar valoración</a>
+    </div>
+  </div>
+
+  <div class="cta-right">
+    <div class="cta-right-title">Escríbenos,<br>te llamamos hoy</div>
+    <div class="contact-form">
+      <input class="form-input" type="text" placeholder="Nombre y apellidos" />
+      <input class="form-input" type="tel" placeholder="Teléfono de contacto" />
+      <input class="form-input" type="email" placeholder="Correo electrónico" />
+      <input class="form-input" type="text" placeholder="¿En qué podemos ayudarte?" />
+      <button class="form-submit">Enviar mensaje →</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">Inmobiliaria Colón</div>
+      <p class="footer-desc">Desde 1998 conectando personas con las propiedades que merecen en Valencia y su área metropolitana.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Servicios</div>
+      <ul class="footer-links">
+        <li><a href="#">Compra y venta</a></li>
+        <li><a href="#">Alquiler</a></li>
+        <li><a href="#">Valoración gratuita</a></li>
+        <li><a href="#">Asesoría hipotecaria</a></li>
+        <li><a href="#">Gestión de alquileres</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Zonas</div>
+      <ul class="footer-links">
+        <li><a href="#">Eixample</a></li>
+        <li><a href="#">Ruzafa</a></li>
+        <li><a href="#">El Carmen</a></li>
+        <li><a href="#">Patacona</a></li>
+        <li><a href="#">Ver todas</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Contacto</div>
+      <ul class="footer-links">
+        <li><a href="#">Calle Colón 42<br>46004 Valencia</a></li>
+        <li><a href="tel:+34960000000">+34 960 000 000</a></li>
+        <li><a href="mailto:info@inmobiliariacolon.es">info@inmobiliariacolon.es</a></li>
+        <li><a href="#">Lun–Vie · 9:00–19:00</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 Inmobiliaria Colón · Todos los derechos reservados · API Nº 3456</div>
+    <div class="footer-socials">
+      <a href="#">ig</a>
+      <a href="#">fb</a>
+      <a href="#">in</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Fade-up observer
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
+  document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+  // Custom cursor
+  const dot = document.getElementById('cDot');
+  const ring = document.getElementById('cRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; dot.style.left = mx+'px'; dot.style.top = my+'px'; });
+  (function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx+'px'; ring.style.top = ry+'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, button, .prop-card, .zone-card').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.style.width='52px'; ring.style.height='52px'; });
+    el.addEventListener('mouseleave', () => { ring.style.width='32px'; ring.style.height='32px'; });
+  });
+</script>
+</body>
+</html>
