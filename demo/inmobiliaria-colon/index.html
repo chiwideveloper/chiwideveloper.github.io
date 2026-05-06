@@ -1639,38 +1639,24 @@
         messages.scrollTop = messages.scrollHeight;
 
         try {
-          const res = await fetch(`${API_URL}/${CLIENT_ID}/stream`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId: SESSION_ID, message: text }),
-          });
-
           document.getElementById("typing").remove();
 
           const botMsg = document.createElement("div");
           botMsg.className = "msg bot";
           messages.appendChild(botMsg);
 
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
+          const eventSource = new EventSource(
+            `${API_URL}/${CLIENT_ID}/stream?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
+          );
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          eventSource.onmessage = (e) => {
+            botMsg.textContent += e.data;
+            messages.scrollTop = messages.scrollHeight;
+          };
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split("\n");
-
-            for (const line of lines) {
-              if (line.startsWith("data: ")) {
-                const text = line.substring(6);
-                if (text && text !== "[DONE]") {
-                  botMsg.textContent += text;
-                  messages.scrollTop = messages.scrollHeight;
-                }
-              }
-            }
-          }
+          eventSource.onerror = () => {
+            eventSource.close();
+          };
         } catch (e) {
           if (document.getElementById("typing")) {
             document.getElementById("typing").remove();
