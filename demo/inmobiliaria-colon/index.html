@@ -1637,8 +1637,6 @@
         messages.appendChild(botMsg);
         messages.scrollTop = messages.scrollHeight;
 
-        let firstChunk = true;
-
         try {
           const res = await fetch(
             `${API_URL}/${CLIENT_ID}/stream?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
@@ -1646,27 +1644,19 @@
 
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
+          let firstChunk = true;
 
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split("\n");
-
-            for (const line of lines) {
-              if (line.startsWith("data:")) {
-                const data = line.substring(5).trim();
-                if (data) {
-                  if (firstChunk) {
-                    botMsg.textContent = "";
-                    firstChunk = false;
-                  }
-                  botMsg.textContent += data;
-                  messages.scrollTop = messages.scrollHeight;
-                }
-              }
+            if (firstChunk) {
+              botMsg.textContent = "";
+              firstChunk = false;
             }
+            botMsg.textContent += chunk;
+            messages.scrollTop = messages.scrollHeight;
           }
         } catch (e) {
           botMsg.textContent = "Error al conectar. Inténtalo de nuevo.";
