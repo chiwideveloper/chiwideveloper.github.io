@@ -1633,39 +1633,33 @@
         input.value = "";
         messages.scrollTop = messages.scrollHeight;
 
-        const typing = document.createElement("div");
-        typing.className = "msg bot typing";
-        typing.id = "typing";
-        typing.textContent = "Escribiendo...";
-        messages.appendChild(typing);
+        const botMsg = document.createElement("div");
+        botMsg.className = "msg bot";
+        botMsg.textContent = "Escribiendo...";
+        messages.appendChild(botMsg);
         messages.scrollTop = messages.scrollHeight;
 
-        try {
-          document.getElementById("typing").remove();
+        let firstChunk = true;
 
-          const botMsg = document.createElement("div");
-          botMsg.className = "msg bot";
-          messages.appendChild(botMsg);
+        const eventSource = new EventSource(
+          `${API_URL}/${CLIENT_ID}/stream?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
+        );
 
-          const eventSource = new EventSource(
-            `${API_URL}/${CLIENT_ID}/stream?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
-          );
-
-          eventSource.onmessage = (e) => {
-            botMsg.textContent += e.data;
-            messages.scrollTop = messages.scrollHeight;
-          };
-
-          eventSource.onerror = () => {
-            eventSource.close();
-          };
-        } catch (e) {
-          if (document.getElementById("typing")) {
-            document.getElementById("typing").remove();
+        eventSource.onmessage = (e) => {
+          if (firstChunk) {
+            botMsg.textContent = "";
+            firstChunk = false;
           }
-          messages.innerHTML += `<div class="msg bot">Error al conectar. Inténtalo de nuevo.</div>`;
-        }
-        messages.scrollTop = messages.scrollHeight;
+          botMsg.textContent += e.data;
+          messages.scrollTop = messages.scrollHeight;
+        };
+
+        eventSource.onerror = () => {
+          eventSource.close();
+          if (firstChunk) {
+            botMsg.textContent = "Error al conectar. Inténtalo de nuevo.";
+          }
+        };
       }
     </script>
   </body>
