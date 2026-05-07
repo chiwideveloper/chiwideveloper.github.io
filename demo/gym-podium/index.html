@@ -1619,6 +1619,35 @@
         "https://claude-automation-production.up.railway.app/api/chat";
       const SESSION_ID = "session-" + Math.random().toString(36).substring(2);
 
+      // Typing effect
+      const queue = [];
+      let isTyping = false;
+      let currentBotMsg = null;
+
+      function typeNextChar() {
+        if (queue.length === 0) {
+          isTyping = false;
+          return;
+        }
+        const char = queue.shift();
+        if (currentBotMsg) {
+          currentBotMsg.textContent += char;
+          document.getElementById("chat-messages").scrollTop =
+            document.getElementById("chat-messages").scrollHeight;
+        }
+        setTimeout(typeNextChar, 8);
+      }
+
+      function appendText(text) {
+        for (const char of text) {
+          queue.push(char);
+        }
+        if (!isTyping) {
+          isTyping = true;
+          typeNextChar();
+        }
+      }
+
       function toggleChat() {
         document.getElementById("chat-window").classList.toggle("open");
       }
@@ -1639,6 +1668,11 @@
         messages.appendChild(botMsg);
         messages.scrollTop = messages.scrollHeight;
 
+        // Limpia la queue y apunta al nuevo mensaje
+        queue.length = 0;
+        isTyping = false;
+        currentBotMsg = null;
+
         try {
           const res = await fetch(
             `${API_URL}/${CLIENT_ID}/stream?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
@@ -1655,10 +1689,10 @@
             const chunk = decoder.decode(value, { stream: true });
             if (firstChunk) {
               botMsg.textContent = "";
+              currentBotMsg = botMsg;
               firstChunk = false;
             }
-            botMsg.textContent += chunk;
-            messages.scrollTop = messages.scrollHeight;
+            appendText(chunk);
           }
         } catch (e) {
           botMsg.textContent = "Error al conectar. Inténtalo de nuevo.";
