@@ -971,10 +971,10 @@
         font-weight: 500;
       }
       .msg.bot {
-        align-self: flex-start;
-        max-width: 80%;
         background: var(--mid);
         color: var(--white);
+        align-self: flex-start;
+        border: 1px solid var(--border);
       }
       .msg.typing {
         color: var(--muted);
@@ -1658,7 +1658,10 @@
         const text = input.value.trim();
         if (!text) return;
 
-        messages.innerHTML += `<div class="msg user">${text}</div>`;
+        const userMsg = document.createElement("div");
+        userMsg.className = "msg user";
+        userMsg.textContent = text;
+        messages.appendChild(userMsg);
         input.value = "";
         messages.scrollTop = messages.scrollHeight;
 
