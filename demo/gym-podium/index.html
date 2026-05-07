@@ -1575,7 +1575,10 @@
         <small>Asistente virtual · En línea</small>
       </div>
       <div id="chat-messages">
-        <div class="msg bot">¡Hola! Soy el asistente de Centro Deportivo Podium. ¿En qué puedo ayudarte?</div>
+        <div class="msg bot">
+          ¡Hola! Soy el asistente de Centro Deportivo Podium. ¿En qué puedo
+          ayudarte?
+        </div>
       </div>
       <div id="chat-input-row">
         <input
@@ -1676,7 +1679,7 @@
 
         try {
           const res = await fetch(
-            `${API_URL}/${CLIENT_ID}/agent?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
+            `${API_URL}/${CLIENT_ID}?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
           );
 
           const reader = res.body.getReader();

@@ -1678,7 +1678,7 @@
 
         try {
           const res = await fetch(
-            `${API_URL}/${CLIENT_ID}/agent?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
+            `${API_URL}/${CLIENT_ID}?sessionId=${SESSION_ID}&message=${encodeURIComponent(text)}`,
           );
 
           const reader = res.body.getReader();
