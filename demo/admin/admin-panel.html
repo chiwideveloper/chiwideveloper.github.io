@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Automation — Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0B0E11; color: #E8ECF1; font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #12161C; }
+    ::-webkit-scrollbar-thumb { background: #2A3240; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const API_BASE = "https://claude-automation-production.up.railway.app";
+
+    const theme = {
+      bg: "#0B0E11", surface: "#12161C", surfaceHover: "#181D25",
+      border: "#1E2530", borderLight: "#2A3240",
+      text: "#E8ECF1", textSecondary: "#8B95A5", textMuted: "#5A6577",
+      accent: "#3B82F6", accentHover: "#2563EB", accentSoft: "rgba(59,130,246,0.1)",
+      success: "#10B981", successSoft: "rgba(16,185,129,0.1)",
+      warning: "#F59E0B", warningSoft: "rgba(245,158,11,0.1)",
+      danger: "#EF4444", dangerSoft: "rgba(239,68,68,0.1)",
+    };
+
+    const s = {
+      loginWrap: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${theme.bg} 0%, #0F1318 50%, #101520 100%)` },
+      loginCard: { width: 400, background: theme.surface, borderRadius: 12, padding: "48px 40px", border: `1px solid ${theme.border}` },
+      loginLogo: { fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", marginBottom: 8 },
+      loginSub: { fontSize: 14, color: theme.textSecondary, marginBottom: 36 },
+      sidebar: { width: 240, position: "fixed", top: 0, left: 0, bottom: 0, background: theme.surface, borderRight: `1px solid ${theme.border}`, display: "flex", flexDirection: "column", zIndex: 50 },
+      sidebarLogo: { padding: "24px 24px 20px", fontSize: 18, fontWeight: 700, letterSpacing: "-0.02em", borderBottom: `1px solid ${theme.border}` },
+      sidebarNav: { padding: "12px 8px", flex: 1, display: "flex", flexDirection: "column", gap: 2 },
+      sidebarItem: (active) => ({ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 8, fontSize: 14, fontWeight: active ? 500 : 400, color: active ? theme.text : theme.textSecondary, background: active ? theme.accentSoft : "transparent", cursor: "pointer", border: "none", width: "100%", textAlign: "left", transition: "all 0.15s", fontFamily: "inherit" }),
+      sidebarFooter: { padding: "16px 24px", borderTop: `1px solid ${theme.border}`, fontSize: 12, color: theme.textMuted },
+      main: { marginLeft: 240, padding: "32px 40px", minHeight: "100vh" },
+      pageTitle: { fontSize: 24, fontWeight: 600, letterSpacing: "-0.02em", marginBottom: 4 },
+      pageDesc: { fontSize: 14, color: theme.textSecondary, marginBottom: 32 },
+      card: { background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 24, marginBottom: 16 },
+      cardTitle: { fontSize: 14, fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 },
+      statsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 32 },
+      statCard: { background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: 10, padding: "20px 24px" },
+      statValue: { fontSize: 32, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1 },
+      statLabel: { fontSize: 13, color: theme.textSecondary, marginTop: 6 },
+      btn: (v) => ({ padding: "10px 20px", borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s", fontFamily: "inherit", ...(v === "primary" ? { background: theme.accent, color: "#fff" } : {}) }),
+      input: { width: "100%", padding: "10px 14px", background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: 14, outline: "none", fontFamily: "inherit" },
+      label: { fontSize: 13, fontWeight: 500, color: theme.textSecondary, marginBottom: 6, display: "block" },
+      badge: (c) => ({ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 500, ...(c === "success" ? { background: theme.successSoft, color: theme.success } : c === "warning" ? { background: theme.warningSoft, color: theme.warning } : c === "danger" ? { background: theme.dangerSoft, color: theme.danger } : { background: theme.accentSoft, color: theme.accent }) }),
+      table: { width: "100%", borderCollapse: "separate", borderSpacing: 0 },
+      th: { textAlign: "left", padding: "10px 16px", fontSize: 12, fontWeight: 500, color: theme.textMuted, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `1px solid ${theme.border}` },
+      td: { padding: "12px 16px", fontSize: 14, color: theme.textSecondary, borderBottom: `1px solid ${theme.border}` },
+      dropzone: (d) => ({ border: `2px dashed ${d ? theme.accent : theme.borderLight}`, borderRadius: 10, padding: "48px 24px", textAlign: "center", cursor: "pointer", background: d ? theme.accentSoft : "transparent", transition: "all 0.2s" }),
+      textarea: { width: "100%", padding: "12px 14px", background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: 14, outline: "none", fontFamily: "inherit", minHeight: 120, resize: "vertical" },
+      emptyState: { textAlign: "center", padding: "60px 20px", color: theme.textMuted, fontSize: 14 },
+    };
+
+    // --- Icons ---
+    const Icon = ({ name, size = 18 }) => {
+      const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" };
+      const icons = {
+        dashboard: React.createElement("svg", p, React.createElement("rect", {x:"3",y:"3",width:"7",height:"7",rx:"1"}), React.createElement("rect", {x:"14",y:"3",width:"7",height:"7",rx:"1"}), React.createElement("rect", {x:"3",y:"14",width:"7",height:"7",rx:"1"}), React.createElement("rect", {x:"14",y:"14",width:"7",height:"7",rx:"1"})),
+        extract: React.createElement("svg", p, React.createElement("path", {d:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"}), React.createElement("polyline", {points:"14 2 14 8 20 8"}), React.createElement("line", {x1:"16",y1:"13",x2:"8",y2:"13"}), React.createElement("line", {x1:"16",y1:"17",x2:"8",y2:"17"})),
+        classify: React.createElement("svg", p, React.createElement("path", {d:"M22 12h-6l-2 3h-4l-2-3H2"}), React.createElement("path", {d:"M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"})),
+        calendar: React.createElement("svg", p, React.createElement("rect", {x:"3",y:"4",width:"18",height:"18",rx:"2"}), React.createElement("line", {x1:"16",y1:"2",x2:"16",y2:"6"}), React.createElement("line", {x1:"8",y1:"2",x2:"8",y2:"6"}), React.createElement("line", {x1:"3",y1:"10",x2:"21",y2:"10"})),
+        settings: React.createElement("svg", p, React.createElement("circle", {cx:"12",cy:"12",r:"3"}), React.createElement("path", {d:"M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"})),
+        upload: React.createElement("svg", p, React.createElement("path", {d:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"}), React.createElement("polyline", {points:"17 8 12 3 7 8"}), React.createElement("line", {x1:"12",y1:"3",x2:"12",y2:"15"})),
+        logout: React.createElement("svg", p, React.createElement("path", {d:"M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"}), React.createElement("polyline", {points:"16 17 21 12 16 7"}), React.createElement("line", {x1:"21",y1:"12",x2:"9",y2:"12"})),
+      };
+      return icons[name] || null;
+    };
+
+    // --- Auth helper ---
+    const authHeader = (token) => ({ "Authorization": "Bearer " + token });
+
+    // --- Login ---
+    function LoginPage({ onLogin }) {
+      const [email, setEmail] = useState("");
+      const [password, setPassword] = useState("");
+      const [error, setError] = useState("");
+      const [loading, setLoading] = useState(false);
+
+      const handleLogin = async () => {
+        if (!email.trim() || !password.trim()) { setError("Completa todos los campos"); return; }
+        setLoading(true); setError("");
+        try {
+          const res = await fetch(API_BASE + "/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          onLogin({ clientId: data.clientId, token: data.token, clientName: data.companyName, userName: data.name, role: data.role });
+        } catch (e) { setError("Email o contraseña incorrectos"); }
+        setLoading(false);
+      };
+
+      return (
+        <div style={s.loginWrap}>
+          <div style={s.loginCard}>
+            <div style={s.loginLogo}>
+              <span style={{ color: theme.accent }}>claude</span>
+              <span style={{ color: theme.textMuted, fontWeight: 400 }}>automation</span>
+            </div>
+            <div style={s.loginSub}>Panel de administración</div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={s.label}>Email</label>
+              <input style={s.input} type="email" placeholder="admin@miempresa.es" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 24 }}>
+              <label style={s.label}>Contraseña</label>
+              <input style={s.input} type="password" placeholder="Tu contraseña" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleLogin()} />
+            </div>
+            {error && <div style={{ color: theme.danger, fontSize: 13, marginBottom: 16 }}>{error}</div>}
+            <button style={{ ...s.btn("primary"), width: "100%", padding: "12px 20px", opacity: loading ? 0.6 : 1 }} onClick={handleLogin} disabled={loading}>
+              {loading ? "Conectando..." : "Acceder"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // --- Dashboard ---
+    function DashboardPage({ session }) {
+      return (
+        <div>
+          <h1 style={s.pageTitle}>Dashboard</h1>
+          <p style={s.pageDesc}>Bienvenido, {session.userName} — {session.clientName}</p>
+          <div style={s.statsGrid}>
+            <div style={s.statCard}><div style={{ ...s.statValue, color: theme.accent }}>—</div><div style={s.statLabel}>Extracciones</div></div>
+            <div style={s.statCard}><div style={{ ...s.statValue, color: theme.success }}>—</div><div style={s.statLabel}>Clasificaciones</div></div>
+            <div style={s.statCard}><div style={{ ...s.statValue, color: theme.warning }}>—</div><div style={s.statLabel}>Citas</div></div>
+            <div style={s.statCard}><div style={{ ...s.statValue, color: theme.text }}>—</div><div style={s.statLabel}>Webhook</div></div>
+          </div>
+          <div style={s.card}>
+            <div style={s.cardTitle}>Actividad reciente</div>
+            <div style={s.emptyState}><div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>Aquí aparecerá la actividad reciente</div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- Extractor ---
+    function ExtractorPage({ session }) {
+      const [files, setFiles] = useState([]);
+      const [dragging, setDragging] = useState(false);
+      const [loading, setLoading] = useState(false);
+      const [results, setResults] = useState([]);
+      const [history, setHistory] = useState([]);
+      const fileRef = useRef();
+
+      useEffect(() => { fetchHistory(); }, []);
+
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(API_BASE + "/api/extract/" + session.clientId + "/history", { headers: authHeader(session.token) });
+          if (res.ok) setHistory(await res.json());
+        } catch (e) {}
+      };
+
+      const handleDrop = (e) => { e.preventDefault(); setDragging(false); setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf")]); };
+      const handleFileSelect = (e) => { setFiles(prev => [...prev, ...Array.from(e.target.files)]); };
+
+      const handleExtract = async () => {
+        if (!files.length) return;
+        setLoading(true); setResults([]);
+        if (files.length === 1) {
+          const fd = new FormData(); fd.append("file", files[0]); fd.append("documentType", "auto");
+          const res = await fetch(API_BASE + "/api/extract/" + session.clientId, { method: "POST", headers: authHeader(session.token), body: fd });
+          setResults([await res.json()]);
+        } else {
+          const fd = new FormData(); files.forEach(f => fd.append("files", f));
+          const res = await fetch(API_BASE + "/api/extract/" + session.clientId + "/batch", { method: "POST", headers: authHeader(session.token), body: fd });
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = "facturas_extraidas.xlsx"; a.click(); window.URL.revokeObjectURL(url);
+        }
+        setLoading(false); setFiles([]); fetchHistory();
+      };
+
+      return (
+        <div>
+          <h1 style={s.pageTitle}>Extractor de documentos</h1>
+          <p style={s.pageDesc}>Sube PDFs de facturas, contratos o CVs y extrae los datos automáticamente</p>
+          <div style={s.card}>
+            <div style={s.dropzone(dragging)} onDragOver={e => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop} onClick={() => fileRef.current?.click()}>
+              <input ref={fileRef} type="file" accept=".pdf" multiple hidden onChange={handleFileSelect} />
+              <div style={{ color: theme.accent, marginBottom: 12 }}><Icon name="upload" size={32} /></div>
+              <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 4 }}>Arrastra PDFs aquí o haz clic para seleccionar</div>
+              <div style={{ fontSize: 13, color: theme.textMuted }}>Formatos: PDF · Máximo 10 archivos</div>
+            </div>
+            {files.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 12 }}>{files.length} archivo{files.length > 1 ? "s" : ""} seleccionado{files.length > 1 ? "s" : ""}</div>
+                {files.map((f, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: theme.bg, borderRadius: 6, marginBottom: 4, fontSize: 13 }}>
+                    <span style={{ color: theme.textSecondary }}>📄 {f.name}</span>
+                    <button style={{ background: "none", border: "none", color: theme.textMuted, cursor: "pointer", fontSize: 16 }} onClick={() => setFiles(files.filter((_, j) => j !== i))}>×</button>
+                  </div>
+                ))}
+                <button style={{ ...s.btn("primary"), marginTop: 16, opacity: loading ? 0.6 : 1 }} onClick={handleExtract} disabled={loading}>
+                  {loading ? "Procesando..." : files.length > 1 ? "Extraer y descargar Excel (" + files.length + ")" : "Extraer datos"}
+                </button>
+              </div>
+            )}
+          </div>
+          {results.length > 0 && (
+            <div style={s.card}>
+              <div style={s.cardTitle}>Resultado</div>
+              <pre style={{ background: theme.bg, padding: 16, borderRadius: 8, fontSize: 13, color: theme.textSecondary, overflow: "auto", maxHeight: 400 }}>
+                {JSON.stringify(results[0].extractedData, null, 2)}
+              </pre>
+            </div>
+          )}
+          <div style={s.card}>
+            <div style={s.cardTitle}>Historial de extracciones</div>
+            {history.length === 0 ? <div style={s.emptyState}>No hay extracciones todavía</div> : (
+              <table style={s.table}>
+                <thead><tr><th style={s.th}>Archivo</th><th style={s.th}>Tipo</th><th style={s.th}>Fecha</th></tr></thead>
+                <tbody>{history.slice(0, 20).map((item, i) => (
+                  <tr key={i}><td style={s.td}>{item.fileName}</td><td style={s.td}><span style={s.badge("info")}>{item.documentType}</span></td><td style={s.td}>{new Date(item.createdAt).toLocaleDateString("es-ES")}</td></tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- Classifier ---
+    function ClassifierPage({ session }) {
+      const [text, setText] = useState("");
+      const [senderName, setSenderName] = useState("");
+      const [senderEmail, setSenderEmail] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [result, setResult] = useState(null);
+      const [history, setHistory] = useState([]);
+
+      useEffect(() => { fetchHistory(); }, []);
+
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(API_BASE + "/api/classify/" + session.clientId + "/history", { headers: authHeader(session.token) });
+          if (res.ok) setHistory(await res.json());
+        } catch (e) {}
+      };
+
+      const handleClassify = async () => {
+        if (!text.trim()) return;
+        setLoading(true); setResult(null);
+        try {
+          const res = await fetch(API_BASE + "/api/classify/" + session.clientId, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeader(session.token) },
+            body: JSON.stringify({ text, senderName, senderEmail }),
+          });
+          const data = await res.json();
+          setResult(data); setText(""); setSenderName(""); setSenderEmail(""); fetchHistory();
+        } catch (e) { setResult({ error: "Error al clasificar" }); }
+        setLoading(false);
+      };
+
+      const pc = (p) => p === "alta" ? "danger" : p === "media" ? "warning" : "success";
+
+      return (
+        <div>
+          <h1 style={s.pageTitle}>Clasificador de mensajes</h1>
+          <p style={s.pageDesc}>Pega un email o mensaje y la IA lo clasifica automáticamente</p>
+          <div style={s.card}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              <div><label style={s.label}>Nombre del remitente</label><input style={s.input} placeholder="María López" value={senderName} onChange={e => setSenderName(e.target.value)} /></div>
+              <div><label style={s.label}>Email del remitente</label><input style={s.input} placeholder="maria@gmail.com" value={senderEmail} onChange={e => setSenderEmail(e.target.value)} /></div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={s.label}>Mensaje a clasificar</label>
+              <textarea style={s.textarea} placeholder="Pega aquí el email o mensaje..." value={text} onChange={e => setText(e.target.value)} />
+            </div>
+            <button style={{ ...s.btn("primary"), opacity: loading ? 0.6 : 1 }} onClick={handleClassify} disabled={loading}>{loading ? "Clasificando..." : "Clasificar mensaje"}</button>
+          </div>
+          {result && !result.error && (
+            <div style={s.card}>
+              <div style={s.cardTitle}>Resultado</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+                <div><div style={s.label}>Categoría</div><span style={s.badge("info")}>{result.category}</span></div>
+                <div><div style={s.label}>Prioridad</div><span style={s.badge(pc(result.priority))}>{result.priority}</span></div>
+                <div><div style={s.label}>Asignado a</div><span style={{ fontSize: 14, color: theme.text }}>{result.assignedTo}</span></div>
+                <div><div style={s.label}>Notificado</div><span style={s.badge(result.notified ? "success" : "warning")}>{result.notified ? "Sí" : "No"}</span></div>
+              </div>
+              <div style={{ marginTop: 16 }}><div style={s.label}>Resumen</div><div style={{ fontSize: 14, color: theme.text }}>{result.summary}</div></div>
+            </div>
+          )}
+          <div style={s.card}>
+            <div style={s.cardTitle}>Historial de clasificaciones</div>
+            {history.length === 0 ? <div style={s.emptyState}>No hay clasificaciones todavía</div> : (
+              <table style={s.table}>
+                <thead><tr><th style={s.th}>Remitente</th><th style={s.th}>Categoría</th><th style={s.th}>Prioridad</th><th style={s.th}>Resumen</th><th style={s.th}>Asignado</th><th style={s.th}>Fecha</th></tr></thead>
+                <tbody>{history.slice(0, 20).map((item, i) => (
+                  <tr key={i}>
+                    <td style={s.td}>{item.senderName || "—"}</td>
+                    <td style={s.td}><span style={s.badge("info")}>{item.category}</span></td>
+                    <td style={s.td}><span style={s.badge(pc(item.priority))}>{item.priority}</span></td>
+                    <td style={{ ...s.td, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.summary}</td>
+                    <td style={s.td}>{item.assignedTo}</td>
+                    <td style={s.td}>{new Date(item.createdAt).toLocaleDateString("es-ES")}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- Appointments ---
+    function AppointmentsPage({ session }) {
+      const [appointments, setAppointments] = useState([]);
+      return (
+        <div>
+          <h1 style={s.pageTitle}>Citas</h1>
+          <p style={s.pageDesc}>Gestiona las citas reservadas a través del chatbot</p>
+          <div style={s.card}>
+            <div style={s.cardTitle}>Próximas citas</div>
+            {appointments.length === 0 ? (
+              <div style={s.emptyState}><div style={{ fontSize: 32, marginBottom: 12 }}>📅</div>Las citas reservadas desde el chatbot aparecerán aquí</div>
+            ) : (
+              <table style={s.table}>
+                <thead><tr><th style={s.th}>Cliente</th><th style={s.th}>Teléfono</th><th style={s.th}>Servicio</th><th style={s.th}>Fecha</th><th style={s.th}>Hora</th><th style={s.th}>Estado</th></tr></thead>
+                <tbody>{appointments.map((apt, i) => (
+                  <tr key={i}><td style={s.td}>{apt.customerName}</td><td style={s.td}>{apt.customerPhone}</td><td style={s.td}>{apt.service}</td><td style={s.td}>{apt.date}</td><td style={s.td}>{apt.time}</td><td style={s.td}><span style={s.badge("success")}>{apt.status}</span></td></tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // --- Settings ---
+    function SettingsPage({ session }) {
+      const [config, setConfig] = useState({ name: "", systemPrompt: "", allowedDomain: "", enabledTools: "", webhookUrl: "", notificationEmail: "" });
+      const [loading, setLoading] = useState(false);
+      const [saved, setSaved] = useState(false);
+
+      useEffect(() => { fetchConfig(); }, []);
+
+      const fetchConfig = async () => {
+        try {
+          const res = await fetch(API_BASE + "/api/panel/config", { headers: authHeader(session.token) });
+          if (res.ok) { const d = await res.json(); setConfig({ name: d.name||"", systemPrompt: d.systemPrompt||"", allowedDomain: d.allowedDomain||"", enabledTools: d.enabledTools||"", webhookUrl: d.webhookUrl||"", notificationEmail: d.notificationEmail||"" }); }
+        } catch (e) {}
+      };
+
+      const handleSave = async () => {
+        setLoading(true); setSaved(false);
+        try {
+          await fetch(API_BASE + "/api/panel/config", { method: "PUT", headers: { "Content-Type": "application/json", ...authHeader(session.token) }, body: JSON.stringify(config) });
+          setSaved(true); setTimeout(() => setSaved(false), 3000);
+        } catch (e) {}
+        setLoading(false);
+      };
+
+      const Field = ({ label, field, type, placeholder }) => (
+        <div style={{ marginBottom: 20 }}>
+          <label style={s.label}>{label}</label>
+          {type === "textarea" ? <textarea style={s.textarea} placeholder={placeholder} value={config[field]} onChange={e => setConfig({ ...config, [field]: e.target.value })} /> : <input style={s.input} placeholder={placeholder} value={config[field]} onChange={e => setConfig({ ...config, [field]: e.target.value })} />}
+        </div>
+      );
+
+      const isAdmin = session.role === "admin";
+
+      return (
+        <div>
+          <h1 style={s.pageTitle}>Configuración</h1>
+          <p style={s.pageDesc}>{isAdmin ? "Ajusta la configuración de tu cuenta" : "Solo los administradores pueden modificar la configuración"}</p>
+          <div style={s.card}>
+            <div style={s.cardTitle}>General</div>
+            <Field label="Nombre del negocio" field="name" placeholder="Mi Empresa S.L." />
+            <Field label="System Prompt" field="systemPrompt" type="textarea" placeholder="Eres un asistente virtual de..." />
+          </div>
+          <div style={s.card}>
+            <div style={s.cardTitle}>Seguridad</div>
+            <Field label="Dominio permitido" field="allowedDomain" placeholder="miempresa.es" />
+            <Field label="Tools activadas" field="enabledTools" placeholder="crear_cita,consultar_citas" />
+          </div>
+          <div style={s.card}>
+            <div style={s.cardTitle}>Notificaciones</div>
+            <Field label="Webhook URL (Slack, Discord...)" field="webhookUrl" placeholder="https://hooks.slack.com/services/..." />
+            <Field label="Email de notificación" field="notificationEmail" placeholder="alertas@miempresa.es" />
+          </div>
+          {isAdmin && (
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <button style={{ ...s.btn("primary"), opacity: loading ? 0.6 : 1 }} onClick={handleSave} disabled={loading}>{loading ? "Guardando..." : "Guardar cambios"}</button>
+              {saved && <span style={{ color: theme.success, fontSize: 14 }}>✓ Guardado correctamente</span>}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // --- App ---
+    const navItems = [
+      { id: "dashboard", label: "Dashboard", icon: "dashboard" },
+      { id: "extract", label: "Extractor", icon: "extract" },
+      { id: "classify", label: "Clasificador", icon: "classify" },
+      { id: "appointments", label: "Citas", icon: "calendar" },
+      { id: "settings", label: "Configuración", icon: "settings" },
+    ];
+
+    function App() {
+      const [session, setSession] = useState(null);
+      const [page, setPage] = useState("dashboard");
+
+      if (!session) return <LoginPage onLogin={setSession} />;
+
+      const pages = { dashboard: DashboardPage, extract: ExtractorPage, classify: ClassifierPage, appointments: AppointmentsPage, settings: SettingsPage };
+      const Page = pages[page] || DashboardPage;
+
+      return (
+        <div style={{ minHeight: "100vh", background: theme.bg, color: theme.text }}>
+          <div style={s.sidebar}>
+            <div style={s.sidebarLogo}>
+              <span style={{ color: theme.accent }}>claude</span>
+              <span style={{ color: theme.textMuted, fontWeight: 400 }}>automation</span>
+            </div>
+            <nav style={s.sidebarNav}>
+              {navItems.map(item => (
+                <button key={item.id} style={s.sidebarItem(page === item.id)} onClick={() => setPage(item.id)}
+                  onMouseEnter={e => { if (page !== item.id) e.currentTarget.style.background = theme.surfaceHover; }}
+                  onMouseLeave={e => { if (page !== item.id) e.currentTarget.style.background = "transparent"; }}>
+                  <Icon name={item.icon} size={18} />{item.label}
+                </button>
+              ))}
+            </nav>
+            <div style={s.sidebarFooter}>
+              <div style={{ marginBottom: 4, color: theme.textSecondary, fontSize: 13 }}>{session.userName}</div>
+              <div style={{ marginBottom: 8, color: theme.textMuted, fontSize: 12 }}>{session.clientName} · {session.role}</div>
+              <button style={{ ...s.sidebarItem(false), padding: "8px 0", color: theme.textMuted, gap: 8 }} onClick={() => setSession(null)}>
+                <Icon name="logout" size={16} />Cerrar sesión
+              </button>
+            </div>
+          </div>
+          <main style={s.main}><Page session={session} /></main>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
