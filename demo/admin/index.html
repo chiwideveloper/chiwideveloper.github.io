@@ -518,25 +518,39 @@
           countWebhooks: 0,
         });
         const [history, setHistory] = useState([]);
+        const [loading, setLoading] = useState(true);
 
         useEffect(() => {
-          fetchHistory();
+          fetchAllDashboardData();
         }, []);
 
-        const fetchHistory = async () => {
+        const fetchAllDashboardData = async () => {
+          setLoading(true);
           try {
-            const res = await fetch(
-              API_BASE + "/api/dashboard/" + session.clientId,
-              {
-                headers: authHeader(session.token),
-              },
-            );
-            if (res.ok) {
-              const data = await res.json();
-              setStats(data);
+            const headers = { headers: authHeader(session.token) };
+
+            // Ejecutamos ambas peticiones en paralelo para mayor velocidad
+            const [resStats, resHistory] = await Promise.all([
+              fetch(`${API_BASE}/api/dashboard/${session.clientId}`, headers),
+              fetch(
+                `${API_BASE}/api/dashboard/all/${session.clientId}`,
+                headers,
+              ),
+            ]);
+
+            if (resStats.ok) {
+              const statsData = await resStats.json();
+              setStats(statsData);
+            }
+
+            if (resHistory.ok) {
+              const historyData = await resHistory.json();
+              setHistory(historyData);
             }
           } catch (e) {
             console.error("Error fetching dashboard data:", e);
+          } finally {
+            setLoading(false);
           }
         };
 
@@ -547,6 +561,7 @@
               Bienvenido, {session.userName} — {session.clientName}
             </p>
 
+            {/* Grid de Stats */}
             <div style={s.statsGrid}>
               <div style={s.statCard}>
                 <div style={{ ...s.statValue, color: theme.accent }}>
@@ -554,21 +569,18 @@
                 </div>
                 <div style={s.statLabel}>Extracciones</div>
               </div>
-
               <div style={s.statCard}>
                 <div style={{ ...s.statValue, color: theme.success }}>
                   {stats.countClassify}
                 </div>
                 <div style={s.statLabel}>Clasificaciones</div>
               </div>
-
               <div style={s.statCard}>
                 <div style={{ ...s.statValue, color: theme.warning }}>
                   {stats.countAppointments}
                 </div>
                 <div style={s.statLabel}>Citas</div>
               </div>
-
               <div style={s.statCard}>
                 <div style={{ ...s.statValue, color: theme.text }}>
                   {stats.countWebhooks}
@@ -577,11 +589,40 @@
               </div>
             </div>
 
+            {/* Card de Actividad Reciente */}
             <div style={s.card}>
               <div style={s.cardTitle}>Actividad reciente</div>
-              {history.length > 0 ? (
-                /* Mapeo de tu historial aquí */
-                <div>Lista de actividad...</div>
+
+              {loading ? (
+                <div style={s.emptyState}>Cargando actividad...</div>
+              ) : history.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {history.map((item, idx) => (
+                    <div key={idx} style={s.historyItem}>
+                      <div style={s.historyIcon}>
+                        {item.task === "APPOINTMENT" ? "📅" : "📄"}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                          {item.task}{" "}
+                          <span style={s.historyType}>• {item.type}</span>
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#666" }}>
+                          {item.description}
+                        </div>
+                      </div>
+                      <div style={s.historyDate}>
+                        {new Date(item.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div style={s.emptyState}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
