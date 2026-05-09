@@ -528,29 +528,45 @@
           setLoading(true);
           try {
             const headers = { headers: authHeader(session.token) };
-
-            // Ejecutamos ambas peticiones en paralelo para mayor velocidad
             const [resStats, resHistory] = await Promise.all([
-              fetch(`${API_BASE}/api/dashboard/${session.clientId}`, headers),
+              fetch(API_BASE + "/api/dashboard/" + session.clientId, headers),
               fetch(
-                `${API_BASE}/api/dashboard/all/${session.clientId}`,
+                API_BASE + "/api/dashboard/all/" + session.clientId,
                 headers,
               ),
             ]);
-
-            if (resStats.ok) {
-              const statsData = await resStats.json();
-              setStats(statsData);
-            }
-
-            if (resHistory.ok) {
-              const historyData = await resHistory.json();
-              setHistory(historyData);
-            }
+            if (resStats.ok) setStats(await resStats.json());
+            if (resHistory.ok) setHistory(await resHistory.json());
           } catch (e) {
             console.error("Error fetching dashboard data:", e);
           } finally {
             setLoading(false);
+          }
+        };
+
+        const taskIcon = (task) => {
+          switch (task) {
+            case "APPOINTMENT":
+              return "📅";
+            case "EXTRACTION":
+              return "📄";
+            case "CLASSIFICATION":
+              return "📨";
+            default:
+              return "📊";
+          }
+        };
+
+        const taskColor = (task) => {
+          switch (task) {
+            case "APPOINTMENT":
+              return theme.warning;
+            case "EXTRACTION":
+              return theme.accent;
+            case "CLASSIFICATION":
+              return theme.success;
+            default:
+              return theme.textMuted;
           }
         };
 
@@ -561,7 +577,6 @@
               Bienvenido, {session.userName} — {session.clientName}
             </p>
 
-            {/* Grid de Stats */}
             <div style={s.statsGrid}>
               <div style={s.statCard}>
                 <div style={{ ...s.statValue, color: theme.accent }}>
@@ -585,11 +600,10 @@
                 <div style={{ ...s.statValue, color: theme.text }}>
                   {stats.countWebhooks}
                 </div>
-                <div style={s.statLabel}>Webhook</div>
+                <div style={s.statLabel}>Webhooks</div>
               </div>
             </div>
 
-            {/* Card de Actividad Reciente */}
             <div style={s.card}>
               <div style={s.cardTitle}>Actividad reciente</div>
 
@@ -597,28 +611,110 @@
                 <div style={s.emptyState}>Cargando actividad...</div>
               ) : history.length > 0 ? (
                 <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
+                  style={{ display: "flex", flexDirection: "column", gap: 0 }}
                 >
                   {history.map((item, idx) => (
-                    <div key={idx} style={s.historyItem}>
-                      <div style={s.historyIcon}>
-                        {item.task === "APPOINTMENT" ? "📅" : "📄"}
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        padding: "14px 16px",
+                        borderBottom:
+                          idx < history.length - 1
+                            ? "1px solid " + theme.border
+                            : "none",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = theme.surfaceHover)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 8,
+                          background: taskColor(item.task) + "15",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 18,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {taskIcon(item.task)}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "bold", fontSize: "14px" }}>
-                          {item.task}{" "}
-                          <span style={s.historyType}>• {item.type}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 2,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 14,
+                              fontWeight: 500,
+                              color: theme.text,
+                            }}
+                          >
+                            {item.description}
+                          </span>
                         </div>
-                        <div style={{ fontSize: "13px", color: "#666" }}>
-                          {item.description}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              padding: "2px 8px",
+                              borderRadius: 4,
+                              background: taskColor(item.task) + "15",
+                              color: taskColor(item.task),
+                            }}
+                          >
+                            {item.task}
+                          </span>
+                          {item.type && (
+                            <span
+                              style={{ fontSize: 12, color: theme.textMuted }}
+                            >
+                              • {item.type}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div style={s.historyDate}>
-                        {new Date(item.date).toLocaleDateString()}
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: theme.textMuted,
+                          flexShrink: 0,
+                          textAlign: "right",
+                        }}
+                      >
+                        <div>
+                          {new Date(item.date).toLocaleDateString("es-ES")}
+                        </div>
+                        <div style={{ fontSize: 11 }}>
+                          {new Date(item.date).toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
                     </div>
                   ))}
