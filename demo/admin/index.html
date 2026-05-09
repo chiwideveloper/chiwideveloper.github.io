@@ -324,6 +324,13 @@
     // --- Appointments ---
     function AppointmentsPage({ session }) {
       const [appointments, setAppointments] = useState([]);
+
+      const fetchHistory = async () => {
+        try {
+          const res = await fetch(API_BASE + "/api/appointment/" + session.clientId + "/history", { headers: authHeader(session.token) });
+          if (res.ok) setAppointments(await res.json());
+        } catch (e) {}
+      };
       return (
         <div>
           <h1 style={s.pageTitle}>Citas</h1>
