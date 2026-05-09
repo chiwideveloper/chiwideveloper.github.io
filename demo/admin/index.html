@@ -325,6 +325,8 @@
     function AppointmentsPage({ session }) {
       const [appointments, setAppointments] = useState([]);
 
+      useEffect(() => { fetchHistory(); }, []);
+
       const fetchHistory = async () => {
         try {
           const res = await fetch(API_BASE + "/api/appointment/" + session.clientId + "/history", { headers: authHeader(session.token) });
